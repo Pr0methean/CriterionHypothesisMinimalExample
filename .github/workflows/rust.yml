@@ -1,0 +1,29 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Fetch baseline
+      run: git fetch origin ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+    - name: Install criterion-hypothesis
+      run: cargo +nightly install criterion-hypothesis
+    - name: Run benchmarks
+      if: ${{ github.branch != 'bench' }}
+      run: >
+        criterion-hypothesis -v --harness-output
+        --baseline ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+        --candidate ${{ github.sha }}
