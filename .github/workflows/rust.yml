@@ -18,7 +18,11 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Fetch baseline
-      run: git fetch origin ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+      if: ${{ github.event_name == 'pull_request' }}
+      run: git fetch origin ${{ github.event.pull_request.base.sha }}
+    - name: Fetch baseline
+      if: ${{ github.event_name != 'pull_request' }}
+      run: git fetch origin $(git rev-parse HEAD^)
     - name: Install criterion-hypothesis
       run: cargo +nightly install criterion-hypothesis
     - name: Run benchmarks
